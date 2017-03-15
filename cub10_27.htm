@@ -1,5 +1,162 @@
 <!doctype html>
 <html><head>
-<title>Test</title>
+<title>A sliding piece puzzle</title>
 <meta charset="utf-8" />
-</head><body><p>Test page</p></body></html>
+<style>
+canvas { border: 1px solid black; }
+</style>
+<script>
+var G = {
+    nodes: null,
+    edges: null,
+    has_edge: function (u, v) {
+        for (var edge_i = 0; edge_i < this.edges.length; ++edge_i) {
+            var e = this.edges[edge_i];
+            if (e.u == u && e.v == v || e.u == v && e.v == u)
+                return true;
+        }
+        return false;
+    }
+};
+var perm;
+var disp = {
+  x0: 190,
+  y0: 190,
+  r: 160,
+  r2: 20
+};
+
+function clearPerm()
+{
+    perm = [0,1,2,3,4,5,6,7,8,9];
+}
+
+function shufflePerm()
+{
+    clearPerm();
+    for (var i = 9; i >= 1; --i)
+    {
+        var j = Math.floor((1 + i) * Math.random());
+        var temp = perm[i];
+        perm[i] = perm[j];
+        perm[j] = temp;
+    }
+}
+
+function refreshDisplay()
+{
+    var canvas = document.getElementById("canvas1");
+    var context = canvas.getContext("2d");
+
+    context.fillStyle = "lightgray";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    var unoccupied_node = perm.indexOf(0);
+
+    for (var edge_i = 0; edge_i < G.edges.length; ++edge_i)
+    {
+        var edge = G.edges[edge_i];
+        if (edge.u == unoccupied_node || edge.v == unoccupied_node)
+            context.lineWidth = 3;
+        else
+            context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(G.nodes[edge.u].x, G.nodes[edge.u].y);
+        context.lineTo(G.nodes[edge.v].x, G.nodes[edge.v].y);
+        context.stroke();
+    }
+    context.lineWidth = 1;
+    for (var node_i = 0; node_i < G.nodes.length; ++node_i)
+    {
+        var node = G.nodes[node_i];
+        var tile = perm[node_i];
+
+        if (0 == tile)
+            context.fillStyle = "yellow";
+        else if (node_i == tile)
+            context.fillStyle = "lightgreen";
+        else
+            context.fillStyle = "white";
+
+        context.beginPath();
+        context.arc(node.x, node.y, disp.r2, 0, 6.28, false);
+        context.closePath();
+        context.stroke();
+        context.fill();
+
+        context.fillStyle = "black";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.font = "bold 2em serif";
+        if (0 == tile)
+            context.fillText("", node.x, node.y);
+        else
+            context.fillText("" + tile, node.x, node.y);
+    }
+}
+
+function createGraph()
+{
+    G.nodes = [{ x: disp.x0, y: disp.y0 }];
+    for (var node_i = 1; node_i < 10; ++node_i)
+    {
+        var angle = -1.57 - (node_i + 3) * (6.28 / 9);
+        var rx = Math.cos(angle);
+        var ry = Math.sin(angle);
+        var sx = disp.x0 + Math.floor(disp.r * rx);
+        var sy = disp.y0 - Math.floor(disp.r * ry);
+        var node = { x: sx, y: sy };
+        G.nodes.push(node);
+    }
+    G.edges = [{u: 0, v: 3}, {u: 0, v: 6}, {u: 0, v: 9}, {u: 1, v: 5}, {u: 2, v: 7}, {u: 4, v: 8}];
+    for (var node_i = 1; node_i < 10; ++node_i)
+    {
+        var edge = { u: node_i, v: node_i % 9 + 1 };
+        G.edges.push(edge);
+    }
+}
+
+function keyHandler(e) {
+    switch (e.keyCode)
+    {
+    case 27:
+        clearPerm();
+        refreshDisplay();
+        break;
+    case 32:
+        e.preventDefault();
+        shufflePerm();
+        refreshDisplay();
+        break;
+    case 49: case 50: case 51:
+    case 52: case 53: case 54:
+    case 55: case 56: case 57:
+        var tile = e.keyCode - 48;
+        var location = perm.indexOf(tile);
+        var unoccupied = perm.indexOf(0);
+        if (G.has_edge(unoccupied, location))
+        {
+            perm[unoccupied] = tile;
+            perm[location] = 0;
+            refreshDisplay();
+        }
+        break;
+    }
+}
+
+window.onload = function() {
+    createGraph();
+    clearPerm();
+    refreshDisplay();
+    document.addEventListener('keydown', keyHandler);
+}
+</script></head>
+<body>
+<canvas id="canvas1" width="380" height="380">Your browser does not support canvas.</canvas>
+<p>Use keys 1-9 for movements, &lt;Space&gt; to scramble, &lt;Esc&gt; to reset.</p>
+<p>Sliding pieces occupying their home locations are highlighted.</p>
+<h2>Links</h2>
+<ul>
+<li><a href="http://cubezzz.dyndns.org/drupal/?q=node/view/554" target="_blank">A cubic graph with cubic diameter</a></li>
+</ul>
+</body></html>
