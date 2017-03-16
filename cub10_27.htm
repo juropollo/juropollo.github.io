@@ -18,12 +18,19 @@ var G = {
         return false;
     }
 };
+
 var perm;
+
 var disp = {
   x0: 190,
   y0: 190,
   r: 160,
-  r2: 20
+  r2: 20,
+  colorBackground: "lightgray",
+  colorEmpty:      "yellow",
+  colorSolved:     "lightgreen",
+  colorUnsolved:   "white",
+  colorText:       "black"
 };
 
 function clearPerm()
@@ -48,7 +55,7 @@ function refreshDisplay()
     var canvas = document.getElementById("canvas1");
     var context = canvas.getContext("2d");
 
-    context.fillStyle = "lightgray";
+    context.fillStyle = disp.colorBackground;
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     var unoccupied_node = perm.indexOf(0);
@@ -72,11 +79,11 @@ function refreshDisplay()
         var tile = perm[node_i];
 
         if (0 == tile)
-            context.fillStyle = "yellow";
+            context.fillStyle = disp.colorEmpty;
         else if (node_i == tile)
-            context.fillStyle = "lightgreen";
+            context.fillStyle = disp.colorSolved;
         else
-            context.fillStyle = "white";
+            context.fillStyle = disp.colorUnsolved;
 
         context.beginPath();
         context.arc(node.x, node.y, disp.r2, 0, 6.28, false);
@@ -84,7 +91,7 @@ function refreshDisplay()
         context.stroke();
         context.fill();
 
-        context.fillStyle = "black";
+        context.fillStyle = disp.colorText;
         context.textAlign = "center";
         context.textBaseline = "middle";
         context.font = "bold 2em serif";
@@ -116,7 +123,8 @@ function createGraph()
     }
 }
 
-function keyHandler(e) {
+function keyHandler(e)
+{
     switch (e.keyCode)
     {
     case 27:
